@@ -1,0 +1,33 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.0'
+    implementation group: 'commons-io', name: 'commons-io', version: '2.6'
+    testImplementation 'junit:junit:4.12'
+}
+
+application {
+    mainClassName = 'fakeArduino.App'
+}
+
+task createSignatureList(type: Exec) {
+    workingDir = 'build/classes/java/main/fakeArduino'
+    commandLine 'javap', '-s', "*.class"
+    // standardOutput new FileOutputStream('signatures.txt')
+    dependsOn {
+        compileJava
+    }
+}
+
+compileJava {
+    options.compilerArgs += ['-h', 'src/main/resources/source']
+    options.fork = true
+    options.forkOptions.executable = 'javac'
+}
