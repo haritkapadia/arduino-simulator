@@ -41,7 +41,7 @@ public class App {
         }
         // Run cmake - S . -B build -DCODEFILE:STRING=code.c
         try {
-            ProcessBuilder cmakeBuilder = new ProcessBuilder("cmake", "-S", ".", "-B", "build", "-DCODEFILE:STRING=" + baseName + ".c");
+            ProcessBuilder cmakeBuilder = new ProcessBuilder("cmake", "-S", ".", "-B", "build", "-DCODEFILE:STRING=" + baseName + ".c", "-DCMAKE_GENERATOR_PLATFORM=x64");
             cmakeBuilder.directory(compileDir.toFile());
             cmakeBuilder.inheritIO();
             Process cmake = cmakeBuilder.start();
