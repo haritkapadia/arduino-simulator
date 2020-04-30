@@ -80,7 +80,7 @@ public class App {
                 a.setup();
                 while(a.getRunning()) {
                     a.loop();
-                    System.out.println(Arrays.toString(a.getPins()));
+                    // System.out.println(Arrays.toString(a.getPins())); RELOCATED TO JNIARDUINO.JAVA
                 }
                 a.close();
             }

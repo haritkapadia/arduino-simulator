@@ -76,6 +76,9 @@ void digitalWrite(int pin_idx, int value) {
     jmethodID pm = (*gEnv)->GetMethodID(gEnv, pc, "setValue", "(I)V");
     assert(pm != NULL);
     (*gEnv)->CallVoidMethod(gEnv, pin, pm, (jint)value);
+    jmethodID up = (*gEnv)->GetMethodID(gEnv, c, "onUpdate", "()V");
+    assert(up != NULL);
+    (*gEnv)->CallVoidMethod(gEnv, gArduino, up);
 }
 
 void exitArduino() {
