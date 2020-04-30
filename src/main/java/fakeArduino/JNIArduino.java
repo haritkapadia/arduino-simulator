@@ -1,6 +1,7 @@
 package fakeArduino;
 
 import java.io.File;
+import java.util.*;
 
 public class JNIArduino {
     Pin[] pins = new Pin[14];
@@ -23,5 +24,10 @@ public class JNIArduino {
 
     public Pin[] getPins() {
         return pins;
+    }
+
+    public void onUpdate(){
+        //TODO: Replace to make it interact with the interface
+        System.out.println(Arrays.toString(pins));
     }
 }
