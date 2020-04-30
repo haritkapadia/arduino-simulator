@@ -41,7 +41,13 @@ public class App {
         }
         // Run cmake - S . -B build -DCODEFILE:STRING=code.c
         try {
-            ProcessBuilder cmakeBuilder = new ProcessBuilder("cmake", "-S", ".", "-B", "build", "-DCODEFILE:STRING=" + baseName + ".c", "-DCMAKE_GENERATOR_PLATFORM=x64");
+            ProcessBuilder cmakeBuilder = null;
+            if(SystemUtils.IS_OS_WINDOWS) {
+                cmakeBuilder = new ProcessBuilder("cmake", "-S", ".", "-B", "build", "-DJAVA_OS_DIR:STRING=win32", "-DCMAKE_GENERATOR_PLATFORM=x64", "-DCODEFILE:STRING=" + baseName + ".c");
+            } else if(SystemUtils.IS_OS_LINUX) {
+                cmakeBuilder = new ProcessBuilder("cmake", "-S", ".", "-B", "build", "-DJAVA_OS_DIR:STRING=linux", "-DCODEFILE:STRING=" + baseName + ".c");
+                System.out.println("Linux");
+            }
             cmakeBuilder.directory(compileDir.toFile());
             cmakeBuilder.inheritIO();
             Process cmake = cmakeBuilder.start();
@@ -66,9 +72,25 @@ public class App {
         // copy codelib.dll and DONT delete temporary compilation steps
         if(SystemUtils.IS_OS_WINDOWS) {
             Files.copy(buildDir.resolve(Paths.get("Debug", "codelib.dll")), Paths.get(".", "codelib.dll"), StandardCopyOption.REPLACE_EXISTING);
-            // FileUtils.deleteDirectory(compileDir.toFile());
+        } else if(SystemUtils.IS_OS_LINUX) {
+            Files.copy(buildDir.resolve(Paths.get("libcodelib.so")), Paths.get(".", "libcodelib.so"), StandardCopyOption.REPLACE_EXISTING);
         }
         return 0;
+    }
+
+    public static void clean() throws IOException {
+        // File compileDir = Paths.get(".", "compile").toFile();
+        // if(compileDir.exists())
+        //     FileUtils.deleteDirectory(compileDir);
+        if(SystemUtils.IS_OS_WINDOWS) {
+            Path lib = Paths.get(".", "codelib.dll");
+            if(lib.toFile().exists())
+                Files.delete(lib);
+        } else if(SystemUtils.IS_OS_LINUX) {
+            Path lib = Paths.get(".", "libcodelib.so");
+            if(lib.toFile().exists())
+                Files.delete(lib);
+        }
     }
 
     public static void main(String[] args) {

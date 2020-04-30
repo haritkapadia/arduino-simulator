@@ -29,12 +29,42 @@ void sleep_us(int microseconds) // cross-platform sleep function
 
 jobject gArduino;
 JNIEnv *gEnv;
+enum MethodEnum
+    {
+     Pin_getPin,
+     Pin_getPinMode,
+     Pin_setPinMode,
+     Pin_getValue,
+     Pin_setValue,
+     size_M
+    };
+jmethodID methods[size_M];
 bool gRunning = false;
 
 JNIEXPORT void JNICALL Java_fakeArduino_JNIArduino_init
 (JNIEnv *env, jobject arduino) {
     gArduino = (jobject)(*env)->NewGlobalRef(env, arduino);
     gEnv = env;
+    {
+        jclass c = (*gEnv)->GetObjectClass(gEnv, gArduino);
+        assert(c != NULL);
+        methods[Pin_getPin] = (*gEnv)->GetMethodID(gEnv, c, "getPin", "(I)LfakeArduino/Pin;");
+        assert(methods[Pin_getPin] != NULL);
+    }
+    jclass pin_class = (*gEnv)->FindClass(gEnv, "LfakeArduino/Pin;");
+    assert(pin_class != NULL);
+
+    methods[Pin_getPinMode] = (*gEnv)->GetMethodID(gEnv, pin_class, "getPinMode", "()I");
+    assert(methods[Pin_getPinMode] != NULL);
+
+    methods[Pin_setPinMode] = (*gEnv)->GetMethodID(gEnv, pin_class, "setPinMode", "(I)V");
+    assert(methods[Pin_setPinMode] != NULL);
+
+    methods[Pin_getValue] = (*gEnv)->GetMethodID(gEnv, pin_class, "getValue", "(I)I");
+    assert(methods[Pin_getValue] != NULL);
+
+    methods[Pin_setValue] = (*gEnv)->GetMethodID(gEnv, pin_class, "setValue", "(II)V");
+    assert(methods[Pin_setValue] != NULL);
 }
 
 JNIEXPORT void JNICALL Java_fakeArduino_JNIArduino_close
@@ -47,12 +77,6 @@ JNIEXPORT jboolean JNICALL Java_fakeArduino_JNIArduino_getRunning
     return (jboolean)gRunning;
 }
 
-#define OurCallObjectMethod(env, thiz, name, sig, ret) {                \
-        jclass c = (*(env))->GetObjectClass((env), (thiz));             \
-        jmethodID m = (*(env))->GetMethodID((env), (c), (name), (sig)); \
-        ret = (*(env))->CallObjectMethod((env), (thiz), m);             \
-    }                                                                   \
-
 JNIEXPORT void JNICALL Java_fakeArduino_JNIArduino_setup
 (JNIEnv *env, jobject thiz) {
     gRunning = true;
@@ -64,18 +88,22 @@ JNIEXPORT void JNICALL Java_fakeArduino_JNIArduino_loop
     loop();
 }
 
-void digitalWrite(int pin_idx, int value) {
-    jclass c = (*gEnv)->GetObjectClass(gEnv, gArduino);
-    assert(c != NULL);
-    jmethodID m = (*gEnv)->GetMethodID(gEnv, c, "getPin", "(I)LfakeArduino/Pin;");
-    assert(m != NULL);
-    jobject pin = (*gEnv)->CallObjectMethod(gEnv, gArduino, m, (jint)pin_idx);
+void pinMode(int pin_idx, int mode) {
+    jobject pin = (*gEnv)->CallObjectMethod(gEnv, gArduino, methods[Pin_getPin], (jint)pin_idx);
     assert(pin != NULL);
-    jclass pc = (*gEnv)->GetObjectClass(gEnv, pin);
-    assert(pc != NULL);
-    jmethodID pm = (*gEnv)->GetMethodID(gEnv, pc, "setValue", "(I)V");
-    assert(pm != NULL);
-    (*gEnv)->CallVoidMethod(gEnv, pin, pm, (jint)value);
+    (*gEnv)->CallVoidMethod(gEnv, pin, methods[Pin_setPinMode], (jint)mode);
+}
+
+void digitalWrite(int pin_idx, int value) {
+    jobject pin = (*gEnv)->CallObjectMethod(gEnv, gArduino, methods[Pin_getPin], (jint)pin_idx);
+    assert(pin != NULL);
+    (*gEnv)->CallVoidMethod(gEnv, pin, methods[Pin_setValue], (jint)value, (jint)0);
+}
+
+int digitalRead(int pin_idx) {
+    jobject pin = (*gEnv)->CallObjectMethod(gEnv, gArduino, methods[Pin_getPin], (jint)pin_idx);
+    assert(pin != NULL);
+    return (int)((*gEnv)->CallIntMethod(gEnv, pin, methods[Pin_getValue], (jint)0));
 }
 
 void exitArduino() {

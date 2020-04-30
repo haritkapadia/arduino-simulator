@@ -8,6 +8,7 @@ build
 compile
 main.ino
 codelib.dll
+libcodelib.so
 
 # Ignore JNI errors
 hs_err_pid*

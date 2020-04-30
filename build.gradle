@@ -10,16 +10,28 @@ repositories {
 dependencies {
     implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.0'
     implementation group: 'commons-io', name: 'commons-io', version: '2.6'
-    testImplementation 'junit:junit:4.12'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.2'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.6.2'
 }
 
 application {
     mainClassName = 'fakeArduino.App'
 }
 
+test {
+    useJUnitPlatform()
+    systemProperties['java.library.path'] = '.'
+    testLogging.showStandardStreams = true
+    forkEvery = 1
+}
+
+run {
+    systemProperties['java.library.path'] = '.'
+}
+
 task createSignatureList(type: Exec) {
     workingDir = 'build/classes/java/main/fakeArduino'
-    commandLine 'javap', '-s', "*.class"
+    commandLine 'javap', '-s', "JNIArduino.class", "Pin.class"
     // standardOutput new FileOutputStream('signatures.txt')
     dependsOn {
         compileJava
