@@ -64,6 +64,21 @@ JNIEXPORT void JNICALL Java_fakeArduino_JNIArduino_loop
     loop();
 }
 
+int digitalRead(int pin_idx) {
+    jclass c = (*gEnv)->GetObjectClass(gEnv, gArduino);
+    assert(c != NULL);
+    jmethodID m = (*gEnv)->GetMethodID(gEnv, c, "getPin", "(I)LfakeArduino/Pin;");
+    assert(m != NULL);
+    jobject pin = (*gEnv)->CallObjectMethod(gEnv, gArduino, m, (jint)pin_idx);
+    assert(pin != NULL);
+    jclass pc = (*gEnv)->GetObjectClass(gEnv, pin);
+    assert(pc != NULL);
+    jmethodID pm = (*gEnv)->GetMethodID(gEnv, pc, "getValue", "()I");
+    assert(pm != NULL);
+    return (int)(*gEnv)->CallIntMethod(gEnv, pin, pm) > 0;
+
+}
+
 void digitalWrite(int pin_idx, int value) {
     jclass c = (*gEnv)->GetObjectClass(gEnv, gArduino);
     assert(c != NULL);
@@ -76,6 +91,8 @@ void digitalWrite(int pin_idx, int value) {
     jmethodID pm = (*gEnv)->GetMethodID(gEnv, pc, "setValue", "(I)V");
     assert(pm != NULL);
     (*gEnv)->CallVoidMethod(gEnv, pin, pm, (jint)value);
+
+    //Print updated pin array
     jmethodID up = (*gEnv)->GetMethodID(gEnv, c, "onUpdate", "()V");
     assert(up != NULL);
     (*gEnv)->CallVoidMethod(gEnv, gArduino, up);

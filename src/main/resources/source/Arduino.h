@@ -7,6 +7,7 @@
 void setup(void);
 void loop(void);
 
+int digitalRead(int);
 void digitalWrite(int, int);
 void exitArduino();
 
